@@ -1,0 +1,19 @@
+/* Markdown editor inline styles — applied to dangerouslySetInnerHTML rendered content */
+/* These classes cannot be in Tailwind utilities since they're set via innerHTML */
+
+.md-line strong { font-weight: 700; }
+.md-line em     { font-style: italic; opacity: 0.85; }
+.md-line del    { text-decoration: line-through; opacity: 0.55; }
+.md-line code {
+  background: var(--color-surface-mid);
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.8125rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  color: var(--color-primary);
+}
+.md-line a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

@@ -1,26 +1,202 @@
 @import "tailwindcss";
+@import "./md-editor.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─────────────────────────────────────────────────
+   Tailwind v4 dark-mode variant (class-based)
+   Applied when html has data-theme="dark"
+───────────────────────────────────────────────── */
+@variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  /* ── Light theme tokens (default) ── */
+  --color-surface:            #fbf9f5;
+  --color-surface-low:        #f5f3ef;
+  --color-surface-mid:        #efeee8;
+  --color-surface-high:       #e9e8e2;
+  --color-surface-highest:    #e2e3dc;
+  --color-surface-pure:       #ffffff;
+  --color-surface-dim:        #d9dbd3;
+  --color-on-surface:         #31332e;
+  --color-on-surface-var:     #5e605a;
+  --color-outline:            #7a7b75;
+  --color-outline-var:        #b1b3ac;
+  --color-inverse-surface:    #0e0e0d;
+  --color-inverse-on:         #9e9d9a;
+  --color-primary:            #005fad;
+  --color-primary-dim:        #005398;
+  --color-primary-container:  #d4e3ff;
+  --color-on-primary:         #f6f7ff;
+  --color-on-primary-cnt:     #005397;
+  --color-secondary:          #605f5b;
+  --color-secondary-cnt:      #e5e2dd;
+  --color-on-secondary-cnt:   #52524e;
+  --color-tertiary-cnt:       #f4f4f2;
+  --color-error:              #9e422c;
+  --color-error-cnt:          #fe8b70;
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Radius ── */
+  --radius-sm:  0.125rem;
+  --radius-md:  0.375rem;
+  --radius-lg:  0.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─────────────────────────────────────────────────
+   Dark theme overrides
+───────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-surface:            #141412;
+  --color-surface-low:        #1a1917;
+  --color-surface-mid:        #211f1d;
+  --color-surface-high:       #2a2825;
+  --color-surface-highest:    #32302d;
+  --color-surface-pure:       #1a1917;
+  --color-surface-dim:        #0e0d0c;
+  --color-on-surface:         #e8e6e1;
+  --color-on-surface-var:     #a8a69f;
+  --color-outline:            #6e6c66;
+  --color-outline-var:        #3d3c38;
+  --color-inverse-surface:    #e8e6e1;
+  --color-inverse-on:         #5a5952;
+  --color-primary:            #6aabff;
+  --color-primary-dim:        #4d96ff;
+  --color-primary-container:  #0a2d4d;
+  --color-on-primary:         #001433;
+  --color-on-primary-cnt:     #9dc8ff;
+  --color-secondary:          #a8a69f;
+  --color-secondary-cnt:      #2a2825;
+  --color-on-secondary-cnt:   #c8c5bd;
+  --color-tertiary-cnt:       #211f1d;
+  --color-error:              #ff8a6e;
+  --color-error-cnt:          #5c1a07;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─────────────────────────────────────────────────
+   Sepia theme overrides
+───────────────────────────────────────────────── */
+[data-theme="sepia"] {
+  --color-surface:            #f5edd8;
+  --color-surface-low:        #f0e5cc;
+  --color-surface-mid:        #e8d9bc;
+  --color-surface-high:       #deccab;
+  --color-surface-highest:    #d4c09a;
+  --color-surface-pure:       #faf4e6;
+  --color-surface-dim:        #c8b48c;
+  --color-on-surface:         #2c2417;
+  --color-on-surface-var:     #5e4e35;
+  --color-outline:            #8c7355;
+  --color-outline-var:        #c4a87a;
+  --color-primary:            #7a4f1f;
+  --color-primary-dim:        #633e16;
+  --color-primary-container:  #f0d9b0;
+  --color-on-primary:         #faf0e0;
+  --color-on-primary-cnt:     #5c3510;
+  --color-secondary-cnt:      #ead5b0;
+  --color-on-secondary-cnt:   #4a3520;
 }
 
+/* ─────────────────────────────────────────────────
+   Base
+───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ─────────────────────────────────────────────────
+   Scrollbar
+───────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-outline-var); border-radius: 9999px; }
+
+/* ─────────────────────────────────────────────────
+   Sidebar slide-in (mobile)
+───────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  #sidebar {
+    position: fixed; top: 0; left: 0; height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(14,14,13,.12);
+  }
+  #sidebar.open { transform: translateX(0); }
+}
+
+/* ─────────────────────────────────────────────────
+   Animations
+───────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp 0.2s ease forwards; }
+
+/* ─────────────────────────────────────────────────
+   Tiptap editor styles
+───────────────────────────────────────────────── */
+.tiptap-editor { outline: none; min-height: 300px; }
+.tiptap-editor p { margin: 0 0 0.25rem; }
+.tiptap-editor h1 { font-size: 1.6rem; font-weight: 700; line-height: 1.25; margin: 1rem 0 0.4rem; }
+.tiptap-editor h2 { font-size: 1.3rem; font-weight: 700; line-height: 1.3; margin: 0.9rem 0 0.35rem; }
+.tiptap-editor h3 { font-size: 1.1rem; font-weight: 600; line-height: 1.35; margin: 0.8rem 0 0.3rem; }
+.tiptap-editor blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 0.75rem;
+  color: var(--color-on-surface-var);
+  font-style: italic;
+  margin: 0.5rem 0;
+}
+.tiptap-editor code {
+  background: var(--color-surface-mid);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-family: ui-monospace, monospace;
+  color: var(--color-primary);
+}
+.tiptap-editor pre {
+  background: var(--color-surface-mid);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+.tiptap-editor pre code { background: none; padding: 0; font-size: 0.82em; color: var(--color-on-surface); }
+.tiptap-editor mark { background: #fef08a; border-radius: 2px; padding: 0 0.1rem; }
+[data-theme="dark"] .tiptap-editor mark { background: #713f12; color: #fef3c7; }
+.tiptap-editor a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+.tiptap-editor ul { list-style: disc; padding-left: 1.3rem; margin: 0.3rem 0; }
+.tiptap-editor ol { list-style: decimal; padding-left: 1.3rem; margin: 0.3rem 0; }
+.tiptap-editor li { margin: 0.15rem 0; }
+/* Task list */
+.tiptap-editor ul[data-type="taskList"] { list-style: none; padding-left: 0.25rem; }
+.tiptap-editor ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5rem; }
+.tiptap-editor ul[data-type="taskList"] li > label { flex-shrink: 0; margin-top: 0.2rem; }
+.tiptap-editor ul[data-type="taskList"] li[data-checked="true"] > div { text-decoration: line-through; opacity: 0.6; }
+/* Tables */
+.tiptap-editor table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9em; }
+.tiptap-editor th, .tiptap-editor td { border: 1px solid var(--color-surface-high); padding: 0.4rem 0.6rem; }
+.tiptap-editor th { background: var(--color-surface-mid); font-weight: 600; text-align: left; }
+.tiptap-editor .selectedCell { background: var(--color-primary-container); }
+/* Placeholder */
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-outline);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+/* Image */
+.tiptap-editor img { max-width: 100%; border-radius: 6px; margin: 0.5rem 0; }
+.tiptap-editor img.ProseMirror-selectednode { outline: 2px solid var(--color-primary); }
+/* Horizontal rule */
+.tiptap-editor hr { border: none; border-top: 1px solid var(--color-surface-high); margin: 0.75rem 0; }
