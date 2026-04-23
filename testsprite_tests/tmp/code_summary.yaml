@@ -1,0 +1,88 @@
+version: "2"
+type: frontend
+tech_stack:
+  - nextjs
+  - react
+  - typescript
+  - tailwindcss
+routes:
+  - path: /login
+    file: src/app/login/page.tsx
+    auth_required: false
+    description: User login page
+  - path: /setup
+    file: src/app/setup/page.tsx
+    auth_required: false
+    description: Initial setup page
+  - path: /
+    file: src/app/page.tsx
+    auth_required: true
+    description: Home page
+  - path: /tasks
+    file: src/app/tasks/page.tsx
+    auth_required: true
+    description: Tasks page
+  - path: /calendar
+    file: src/app/calendar/page.tsx
+    auth_required: true
+    description: Calendar page
+  - path: /settings
+    file: src/app/settings/page.tsx
+    auth_required: true
+    description: Settings page
+  - path: /workspace/[workspaceId]
+    file: src/app/workspace/page.tsx
+    auth_required: true
+    description: Workspace details and notes
+features:
+  - name: User Login
+    description: Login with email and password credentials
+    files:
+      - src/app/login/page.tsx
+    entry_route: /login
+    user_interactions:
+      - Fill email input field
+      - Fill password input field
+      - Click Login button to submit
+    api_calls:
+      - method: POST
+        endpoint: /api/login
+    auth_required: false
+  - name: Setup Account
+    description: Setup initial admin account
+    files:
+      - src/app/setup/page.tsx
+    entry_route: /setup
+    user_interactions:
+      - Fill email, password, and name
+      - Click setup button
+    api_calls:
+      - method: POST
+        endpoint: /api/setup
+    auth_required: false
+  - name: Task Management
+    description: Manage tasks
+    files:
+      - src/app/tasks/page.tsx
+    entry_route: /tasks
+    user_interactions:
+      - Create task
+      - Mark task as done
+    api_calls:
+      - method: GET
+        endpoint: /api/tasks
+      - method: POST
+        endpoint: /api/tasks
+    auth_required: true
+  - name: Calendar
+    description: View calendar
+    files:
+      - src/app/calendar/page.tsx
+    entry_route: /calendar
+    user_interactions:
+      - View events
+    api_calls:
+      - method: GET
+        endpoint: /api/events
+    auth_required: true
+known_limitations: []

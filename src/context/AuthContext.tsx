@@ -4,6 +4,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { User, UserRole } from '@/types';
+import { syncPrefsOnLogin } from '@/context/ThemeContext';
 
 interface Workspace { id: string; name: string; slug: string; icon: string; color: string; }
 
@@ -32,7 +33,12 @@ const Context = createContext<AuthCtx>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser]       = useState<AuthUser | null>(null);
+  const [user, setUser]       = useState<AuthUser | null>(() => {
+    if (typeof window !== 'undefined') {
+      try { const cached = localStorage.getItem('cache_user'); if (cached) return JSON.parse(cached); } catch {}
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   const fetchMe = async () => {
@@ -42,11 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const { data } = await res.json();
         setUser(data);
+        if (typeof window !== 'undefined') localStorage.setItem('cache_user', JSON.stringify(data));
+        // Sync localStorage preferences when session is restored
+        syncPrefsOnLogin(data?.id);
       } else {
         setUser(null);
+        if (typeof window !== 'undefined') localStorage.removeItem('cache_user');
       }
     } catch {
       setUser(null);
+      if (typeof window !== 'undefined') localStorage.removeItem('cache_user');
     } finally {
       setLoading(false);
     }

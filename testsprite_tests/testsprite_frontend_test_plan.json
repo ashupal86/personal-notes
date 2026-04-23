@@ -1,0 +1,1495 @@
+[
+  {
+    "id": "TC001",
+    "title": "Login allows access to the dashboard",
+    "description": "Verifies a user can log in with valid credentials and reaches the authenticated dashboard.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the dashboard"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Bootstrap first-run setup creates super admin and lands on dashboard",
+    "description": "Verifies a first-run user can complete setup to create the initial super_admin and is automatically logged in to the dashboard with a workspace visible in the sidebar.",
+    "category": "Setup Account",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /setup"
+      },
+      {
+        "type": "action",
+        "description": "Fill a new unique email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid password (at least 8 characters) into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a display name into the display name field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the setup form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify at least one workspace is visible in the sidebar"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Real-time note edits sync across two sessions",
+    "description": "Verifies that when a user edits a note in one browser session and it auto-saves, another session viewing the same note receives the update without refresh.",
+    "category": "Real-time Synchronization",
+    "steps": [
+      {
+        "type": "action",
+        "description": "In Browser A, navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, open an existing note from the current workspace note list"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, open the same note from the current workspace note list"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, edit the note content by adding a unique line of text like \"RealtimeSyncLine-1\""
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, wait for 3 seconds to allow auto-save to complete"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Browser B shows the updated note content including the unique line without a manual refresh"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Create note in a workspace and autosave after idle",
+    "description": "Verifies a user can open a workspace, create a new note, and see it saved and listed after being idle for 2 seconds.",
+    "category": "Dashboard & Notes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open a workspace from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Create a new note"
+      },
+      {
+        "type": "action",
+        "description": "Fill a unique title into the note title field"
+      },
+      {
+        "type": "action",
+        "description": "Fill Markdown content into the note editor"
+      },
+      {
+        "type": "action",
+        "description": "Wait for 2 seconds"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new note is listed in the workspace note list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Edit existing note and autosave persists after reopening",
+    "description": "Verifies a user can edit an existing note, wait for autosave, reopen it, and see the updated content persisted.",
+    "category": "Dashboard & Notes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open a workspace from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Create a new note"
+      },
+      {
+        "type": "action",
+        "description": "Fill a unique title into the note title field"
+      },
+      {
+        "type": "action",
+        "description": "Fill initial content into the note editor"
+      },
+      {
+        "type": "action",
+        "description": "Wait for 2 seconds"
+      },
+      {
+        "type": "action",
+        "description": "Open the created note from the note list"
+      },
+      {
+        "type": "action",
+        "description": "Edit the note content by appending a new line of text"
+      },
+      {
+        "type": "action",
+        "description": "Wait for 2 seconds"
+      },
+      {
+        "type": "action",
+        "description": "Open a different note or return to the note list view"
+      },
+      {
+        "type": "action",
+        "description": "Reopen the edited note from the note list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the edited content is displayed in the note editor"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Global search filters notes by title in real time",
+    "description": "Verifies typing in global search filters the visible note list by title as the user types.",
+    "category": "Dashboard & Notes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open a workspace from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Create a new note"
+      },
+      {
+        "type": "action",
+        "description": "Fill a unique title into the note title field"
+      },
+      {
+        "type": "action",
+        "description": "Fill content into the note editor"
+      },
+      {
+        "type": "action",
+        "description": "Wait for 2 seconds"
+      },
+      {
+        "type": "action",
+        "description": "Create another new note"
+      },
+      {
+        "type": "action",
+        "description": "Fill a different unique title into the note title field"
+      },
+      {
+        "type": "action",
+        "description": "Fill content into the note editor"
+      },
+      {
+        "type": "action",
+        "description": "Wait for 2 seconds"
+      },
+      {
+        "type": "action",
+        "description": "Type a query matching only one of the note titles into the global search field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the note list shows only notes whose titles match the query"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Render H1 markdown on line blur",
+    "description": "Verifies a user can edit a note line to a markdown H1 and the preview renders it as a heading after blurring the line.",
+    "category": "Markdown Editor (line-based)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open a workspace from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Open a note"
+      },
+      {
+        "type": "action",
+        "description": "Enter edit mode for a line and type \"# Hello World\""
+      },
+      {
+        "type": "action",
+        "description": "Click outside the line to blur it"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the edited line is rendered as a heading in the preview"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Toggle sidebar workspace sub-list",
+    "description": "Verifies a signed-in user can expand and collapse the workspace sub-list from the home page and the list visibility updates accordingly.",
+    "category": "Navigation & UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to expand the workspace sub-list in the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to collapse the workspace sub-list in the sidebar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the workspace sub-list is collapsed and not showing workspace items"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Render bold and italic markdown on line blur",
+    "description": "Verifies a user can enter bold and italic markdown in a note line and see the preview render the styling after blurring the line.",
+    "category": "Markdown Editor (line-based)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open a workspace from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Open a note"
+      },
+      {
+        "type": "action",
+        "description": "Enter edit mode for a line and type \"**bold** and *italic*\""
+      },
+      {
+        "type": "action",
+        "description": "Click outside the line to blur it"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the edited line is rendered with bold and italic styling in the preview"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Render checked task checkbox markdown on line blur",
+    "description": "Verifies a user can create a task list markdown line and the preview renders a checked checkbox after blurring the line.",
+    "category": "Markdown Editor (line-based)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open a workspace from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Open a note"
+      },
+      {
+        "type": "action",
+        "description": "Enter edit mode for a new line and type \"- [x] Done\""
+      },
+      {
+        "type": "action",
+        "description": "Click outside the line to blur it"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the edited line is rendered as a checked task checkbox in the preview"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Real-time task creation sync across two sessions",
+    "description": "Verifies that when a user creates a task in one browser session, another signed-in session sees the new task appear in real time for the active workspace.",
+    "category": "Real-time Synchronization",
+    "steps": [
+      {
+        "type": "action",
+        "description": "In Browser A, navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, click the navigation item to go to tasks"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, click the navigation item to go to tasks"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, create a new task with a unique title like \"RT Task 1\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Browser B shows the new task in the task list without a manual refresh"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC012",
+    "title": "Create a new workspace and see it available in navigation",
+    "description": "Verifies an admin can create a workspace from Settings and the new workspace appears in both the workspaces list and the sidebar.",
+    "category": "Workspace Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the Workspaces tab"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"QA Workspace A\" into the workspace name field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the create workspace form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new workspace appears in the workspaces list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new workspace appears in the sidebar"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC013",
+    "title": "Create a new task in a selected workspace",
+    "description": "Verifies an admin can create a task with a title for a selected workspace and the task appears in the list with todo status.",
+    "category": "Task Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open tasks"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new task"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"QA Task 001\" into the task title field"
+      },
+      {
+        "type": "action",
+        "description": "Select a workspace for the task"
+      },
+      {
+        "type": "action",
+        "description": "Submit the new task"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new task appears in the task list with todo status"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC014",
+    "title": "Open sidebar via hamburger on mobile viewport",
+    "description": "Verifies that on a mobile-sized viewport the signed-in user can open the hamburger menu and see the sidebar with an overlay.",
+    "category": "Navigation & UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Set the viewport width to less than 768px"
+      },
+      {
+        "type": "action",
+        "description": "Open the hamburger menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the sidebar is visible on top of the main content"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an overlay is displayed behind the sidebar"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC015",
+    "title": "Create a new user and see them assigned to the default workspace",
+    "description": "Verifies an admin can create a user with a valid email and the user appears in the users list with an assignment to the General workspace.",
+    "category": "User Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the Users tab"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"qa.user1@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"QA User One\" into the display name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a non-admin role for the new user"
+      },
+      {
+        "type": "action",
+        "description": "Submit the create user form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new user appears in the users list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user shows an assignment to the General workspace"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC016",
+    "title": "Real-time calendar event creation sync across two sessions",
+    "description": "Verifies that when a user creates a calendar event in one browser session, another signed-in session sees the new event appear in real time for the active workspace.",
+    "category": "Real-time Synchronization",
+    "steps": [
+      {
+        "type": "action",
+        "description": "In Browser A, navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, click the navigation item to go to calendar"
+      },
+      {
+        "type": "action",
+        "description": "In Browser B, click the navigation item to go to calendar"
+      },
+      {
+        "type": "action",
+        "description": "In Browser A, create a new calendar event with a unique title like \"RT Event 1\" using valid date and time selections"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Browser B shows the new calendar event in the calendar view without a manual refresh"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC017",
+    "title": "Mark an existing task as done",
+    "description": "Verifies an admin can change a task status from todo to done and the list reflects the updated status.",
+    "category": "Task Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open tasks"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new task"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"QA Task 002\" into the task title field"
+      },
+      {
+        "type": "action",
+        "description": "Select a workspace for the task"
+      },
+      {
+        "type": "action",
+        "description": "Submit the new task"
+      },
+      {
+        "type": "action",
+        "description": "Select the newly created task"
+      },
+      {
+        "type": "action",
+        "description": "Change the task status to done"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected task shows status done in the list"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC018",
+    "title": "View events for the active workspace",
+    "description": "Verifies a user can open the calendar and see events displayed for the currently active workspace.",
+    "category": "Calendar",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open calendar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify calendar events are displayed for the active workspace"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC019",
+    "title": "Add a member to a workspace and see membership updated",
+    "description": "Verifies an admin can add a member to an existing workspace and the member appears in the workspace membership list.",
+    "category": "Workspace Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the Workspaces tab"
+      },
+      {
+        "type": "action",
+        "description": "Create a new workspace named \"QA Workspace Members\""
+      },
+      {
+        "type": "action",
+        "description": "Select the newly created workspace in the workspaces list"
+      },
+      {
+        "type": "action",
+        "description": "Add a member to the workspace using an existing user from the member picker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the added member is listed in the workspace membership section"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC020",
+    "title": "Create a calendar event with start and end times",
+    "description": "Verifies an admin can create a calendar event with valid start and end times and the event appears in the calendar view.",
+    "category": "Calendar",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open calendar"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new event"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"QA Event 001\" into the event title field"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid start time"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid end time after the start time"
+      },
+      {
+        "type": "action",
+        "description": "Select a workspace for the event if required"
+      },
+      {
+        "type": "action",
+        "description": "Submit the new event"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new event appears in the calendar view"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC021",
+    "title": "Open and dismiss profile dropdown",
+    "description": "Verifies a signed-in user can open the profile dropdown, see key options, and dismiss it by clicking outside.",
+    "category": "Navigation & UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the profile dropdown menu"
+      },
+      {
+        "type": "action",
+        "description": "Click outside the dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the profile dropdown is closed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the main page content is visible and interactive"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC022",
+    "title": "Theme change persists after reload",
+    "description": "Verifies a user can change the theme in Profile and the selected theme remains after a page reload.",
+    "category": "Settings & API Keys",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the Profile tab"
+      },
+      {
+        "type": "action",
+        "description": "Change the theme selection to a different theme"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the theme to apply"
+      },
+      {
+        "type": "action",
+        "description": "Reload the page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected theme is still applied"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC023",
+    "title": "Generate an API key and see it displayed once and listed",
+    "description": "Verifies an admin can generate an API key, sees the key value at creation time, and then sees the key entry in the keys list.",
+    "category": "Settings & API Keys",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the API Keys tab"
+      },
+      {
+        "type": "action",
+        "description": "Generate a new API key"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the API key value is displayed in a one-time reveal view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new API key appears in the keys list"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC024",
+    "title": "Profile shows correct identity and role badge",
+    "description": "Verifies a signed-in user can view their profile details and the role badge matches the account role.",
+    "category": "Settings & API Keys",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the Profile tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the profile displays a display name and email"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the role badge matches the signed-in account role"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC025",
+    "title": "Revoke an API key and see it removed from the list",
+    "description": "Verifies an admin can revoke an existing API key and the revoked key no longer appears in the keys list.",
+    "category": "Settings & API Keys",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the API Keys tab"
+      },
+      {
+        "type": "action",
+        "description": "Generate a new API key"
+      },
+      {
+        "type": "action",
+        "description": "Close the one-time API key reveal view"
+      },
+      {
+        "type": "action",
+        "description": "Revoke the newly generated API key"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the revoked API key is not present in the keys list"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC026",
+    "title": "Invalid email is rejected when creating a user",
+    "description": "Verifies the user creation form prevents submission with an invalid email and shows a validation error.",
+    "category": "User Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "action",
+        "description": "Open the Users tab"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"not-an-email\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"Bad Email\" into the display name field"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit the create user form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an email validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC027",
+    "title": "Setup rejects weak password",
+    "description": "Verifies setup prevents account creation when the password is shorter than the minimum length and shows a validation error.",
+    "category": "Setup Account",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /setup"
+      },
+      {
+        "type": "action",
+        "description": "Fill a new unique email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a weak password shorter than 8 characters into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a display name into the display name field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the setup form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a password length validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC028",
+    "title": "Prevent regular user from accessing tasks",
+    "description": "Verifies a regular user cannot see Tasks in navigation and cannot access the tasks page.",
+    "category": "Task Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Verify Tasks is not present in the sidebar navigation"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /tasks"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an access denied state is shown or the tasks view is not available"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC029",
+    "title": "Regular user cannot see Workspaces management in Settings",
+    "description": "Verifies a regular user cannot access workspace management because the Workspaces tab is not visible in Settings.",
+    "category": "Workspace Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open Settings"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the Workspaces tab is not visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC030",
+    "title": "Prevent regular user from accessing calendar",
+    "description": "Verifies a regular user cannot see Calendar in navigation and cannot access the calendar page.",
+    "category": "Calendar",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Verify Calendar is not present in the sidebar navigation"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /calendar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an access denied state is shown or the calendar view is not available"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC031",
+    "title": "Login shows error for non-existent account",
+    "description": "Verifies the login form shows an authentication error when the user enters credentials for an account that does not exist.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill a non-existent email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a password into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an authentication error is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC032",
+    "title": "Setup page redirects to login after initial setup is completed",
+    "description": "Verifies that revisiting the setup route after setup completion redirects the user to the login page.",
+    "category": "Setup Account",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /setup"
+      },
+      {
+        "type": "action",
+        "description": "Fill a new unique email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid password (at least 8 characters) into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a display name into the display name field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the setup form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /setup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the login page is displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC033",
+    "title": "Login validates empty credentials",
+    "description": "Verifies the login form blocks submission with empty required fields and shows validation errors.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a required-field validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "post api auth login success",
+    "description": "Test successful user login with valid email and password, expecting access to workspace area."
+  },
+  {
+    "id": "TC002",
+    "title": "post api auth register validation error",
+    "description": "Test user registration with empty password, expecting validation error about password requirement."
+  },
+  {
+    "id": "TC003",
+    "title": "post api notes create note",
+    "description": "Test creating a new note in the current workspace, verify note appears in the sidebar and is saved."
+  },
+  {
+    "id": "TC004",
+    "title": "patch api notes update note",
+    "description": "Test editing an existing note's title and content, verify auto-save triggers and updated content is shown in preview."
+  },
+  {
+    "id": "TC005",
+    "title": "post api notes pin note",
+    "description": "Test pinning a note in the workspace, verify pinned notes appear at the top of the note list."
+  },
+  {
+    "id": "TC006",
+    "title": "post api notes duplicate note",
+    "description": "Test duplicating a note, verify duplicate note with copy title appears in the same workspace."
+  },
+  {
+    "id": "TC007",
+    "title": "delete api notes delete note",
+    "description": "Test deleting a note, verify the note is removed from the visible list in the workspace."
+  },
+  {
+    "id": "TC008",
+    "title": "post api workspaces create workspace",
+    "description": "Test admin creating a new workspace by providing a name, verify the workspace is listed in settings."
+  },
+  {
+    "id": "TC009",
+    "title": "post api workspaces id members add user",
+    "description": "Test adding a user to a workspace's members list, verify the user appears as a member."
+  },
+  {
+    "id": "TC010",
+    "title": "delete api users id delete user",
+    "description": "Test super_admin deleting a user, verify the user is removed from the user list and cannot access the system."
+  }
+]

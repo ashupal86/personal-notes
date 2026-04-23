@@ -1,333 +1,524 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import dynamic from 'next/dynamic';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import AppShell from '@/components/AppShell';
-import MarkdownEditor from '@/components/MarkdownEditor';
-import Breadcrumb from '@/components/Breadcrumb';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
+import MarkdownEditor from '@/components/MarkdownEditor';
+import WorkspaceIcon from '@/components/WorkspaceIcon';
 import {
-  Plus, MagnifyingGlass, Trash, PushPin, PushPinSlash,
-  FloppyDisk, Check, SmileySticker, X,
-} from '@phosphor-icons/react';
+  Plus, Trash2, Pin, PinOff,
+  Save, Check, FolderOpen, ChevronRight,
+  List, Pencil, Copy, MoreVertical, FolderOutput
+} from 'lucide-react';
 
-const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), { ssr: false, loading: () => <div className="p-5 text-[var(--color-outline)] text-sm">Loading editor…</div> });
-const EmojiPicker  = dynamic(() => import('emoji-picker-react'), { ssr: false });
-
-interface Note      { id: string; title: string; content_md: string; content_json?: object; workspace_id: string; is_pinned: boolean; updated_at: string; }
+interface Note      { id: string; title: string; content_md: string; workspace_id: string; is_pinned: boolean; updated_at: string; }
 interface Workspace { id: string; name: string; slug: string; icon: string; color: string; }
 
 function timeAgo(iso: string) {
   const d = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (d < 3600)  return 'Today';
-  if (d < 86400) return 'Yesterday';
+  if (d < 60)    return 'Just now';
+  if (d < 3600)  return `${Math.floor(d / 60)}m ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
   return `${Math.floor(d / 86400)}d ago`;
 }
 
-export default function WorkspacePage() {
-  const { user, role, primaryWorkspace } = useAuth();
-  const [notes, setNotes]               = useState<Note[]>([]);
-  const [workspaces, setWorkspaces]     = useState<Workspace[]>([]);
-  const [activeWs, setActiveWs]         = useState<Workspace | null>(null);
-  const [active, setActive]             = useState<Note | null>(null);
-  const [content, setContent]           = useState('');
-  const [contentJson, setContentJson]   = useState<object>({});
-  const [search, setSearch]             = useState('');
-  const [saving, setSaving]             = useState(false);
-  const [saved,  setSaved]              = useState(false);
-  const [creating, setCreating]         = useState(false);
-  const [showEmoji, setShowEmoji]       = useState(false);
-  const emojiRef = useRef<HTMLDivElement>(null);
-
-  const loadNotes = useCallback(async (wsId?: string) => {
-    try {
-      const url = wsId ? `/notes?workspace_id=${wsId}` : '/notes';
-      const r   = await api.get<{ success: boolean; data: Note[] }>(url);
-      setNotes(r.data ?? []);
-    } catch {}
-  }, []);
-
+// ── Context Menu ────────────────────────────────────────────────
+interface ContextMenuProps {
+  x: number; y: number;
+  items: { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean }[];
+  onClose: () => void;
+}
+function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    loadNotes();
-    // Load workspaces for admin+
-    const w = ROLE_WEIGHT[role ?? 'user'];
-    if (w >= ROLE_WEIGHT['admin']) {
-      api.get<{ success: boolean; data: Workspace[] }>('/workspaces')
-        .then(r => setWorkspaces(r.data ?? []))
-        .catch(() => {});
-    }
-  }, [role]);
-
-  // Close emoji on outside click
-  useEffect(() => {
-    const h = (e: MouseEvent) => {
-      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) setShowEmoji(false);
-    };
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose(); };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
-  }, []);
+  }, [onClose]);
+  return (
+    <div
+      ref={ref}
+      className="fixed z-[999] bg-[var(--color-surface-pure)] border border-[var(--color-surface-high)] rounded-xl shadow-2xl py-1.5 min-w-[180px] animate-fade-up"
+      style={{ top: y, left: x - 180 }}
+    >
+      {items.map((item, i) => (
+        <button
+          key={i}
+          onClick={() => { item.onClick(); onClose(); }}
+          className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-colors text-left ${
+            item.danger
+              ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
+              : 'text-[var(--color-on-surface)] hover:bg-[var(--color-surface-low)]'
+          }`}
+        >
+          <span className="w-4 h-4">{item.icon}</span>
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-  const selectNote = (n: Note) => {
-    setActive(n);
-    setContent(n.content_md);
-    setContentJson(n.content_json ?? {});
-    setSaved(false);
-  };
+function WorkspacePageContent() {
+  const searchParams = useSearchParams();
+  const router       = useRouter();
+  const wsParam      = searchParams.get('ws');
+  const noteParam    = searchParams.get('note');
+  const { primaryWorkspace, user } = useAuth();
 
+  const [activeWs, setActiveWs]     = useState<Workspace | null>(null);
+  const [allWorkspaces, setAllWorkspaces] = useState<Workspace[]>([]);
+  const [active, setActive]         = useState<Note | null>(null);
+  const [content, setContent]       = useState('');
+  const contentRef = useRef('');
+  const [saving, setSaving]         = useState(false);
+  const [saved, setSaved]           = useState(false);
+  const [creating, setCreating]     = useState(false);
+  const [rightOpen, setRightOpen]   = useState(true);
+  const [wsNotes, setWsNotes]       = useState<Note[]>([]);
+  const [wsNotesLoading, setWsNotesLoading] = useState(false);
+  const [menu, setMenu] = useState<{ x: number; y: number; note: Note } | null>(null);
+  const [moveModal, setMoveModal] = useState<Note | null>(null);
+  // Abort controller for note fetches
+  const fetchAbort = useRef<AbortController | null>(null);
+
+  const outline = content.split('\n').filter(l => /^#{1,3} /.test(l)).slice(0, 8);
+  const words   = content.split(/\s+/).filter(Boolean).length;
+  const chars   = content.length;
+
+  // ── Load all workspaces (cache + fresh) ──
+  useEffect(() => {
+    let cached: Workspace[] = [];
+    try {
+      const raw = localStorage.getItem('cache_workspaces');
+      if (raw) {
+        cached = JSON.parse(raw);
+        setAllWorkspaces(cached);
+        if (wsParam) { const f = cached.find(w => w.id === wsParam); if (f) setActiveWs(f); }
+      }
+    } catch {}
+    api.get<{ success: boolean; data: Workspace[] }>('/workspaces')
+      .then(r => {
+        const ws = r.data ?? [];
+        setAllWorkspaces(ws);
+        try { localStorage.setItem('cache_workspaces', JSON.stringify(ws)); } catch {}
+        if (wsParam) { const f = ws.find(w => w.id === wsParam); if (f) setActiveWs(f); }
+      }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wsParam]);
+
+  // ── Load note from URL param, and resolve its workspace if needed ──
+  const loadNote = useCallback(async (noteId: string) => {
+    if (fetchAbort.current) fetchAbort.current.abort();
+    const ctrl = new AbortController();
+    fetchAbort.current = ctrl;
+
+    try {
+      const res = await fetch(`/api/notes/${noteId}`, { credentials: 'include', signal: ctrl.signal });
+      if (!res.ok) return;
+      const json = await res.json();
+      const note: Note = json.data;
+      if (!ctrl.signal.aborted && note) {
+        setActive(note);
+        setContent(note.content_md);
+        contentRef.current = note.content_md;
+        setSaved(false);
+        // Resolve workspace for this note if not already set via ws= param
+        if (!wsParam && note.workspace_id) {
+          setActiveWs(prev => {
+            if (prev?.id === note.workspace_id) return prev;
+            // Try from already-fetched list
+            const cached = allWorkspaces.find(w => w.id === note.workspace_id);
+            if (cached) return cached;
+            // Fallback: fetch fresh
+            api.get<{ success: boolean; data: Workspace[] }>('/workspaces').then(r => {
+              const ws = r.data ?? [];
+              setAllWorkspaces(ws);
+              const found = ws.find(w => w.id === note.workspace_id);
+              if (found) setActiveWs(found);
+            }).catch(() => {});
+            return prev;
+          });
+        }
+      }
+    } catch { /* aborted or error */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wsParam, allWorkspaces]);
+
+  useEffect(() => {
+    if (noteParam) {
+      loadNote(noteParam);
+    } else {
+      // No note selected — clear editor
+      setActive(null);
+      setContent('');
+      contentRef.current = '';
+    }
+  }, [noteParam, loadNote]);
+
+  // ── Save note ──
   const saveNote = async () => {
     if (!active) return;
     setSaving(true);
+    const latestContent = contentRef.current;
     try {
-      await api.patch(`/notes/${active.id}`, {
-        content_md: content,
-        content_json: contentJson,
-        title: active.title,
-      });
+      await api.patch(`/notes/${active.id}`, { content_md: latestContent, title: active.title });
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-      await loadNotes(activeWs?.id);
+      setTimeout(() => setSaved(false), 2500);
     } catch {}
     setSaving(false);
   };
 
+  // Auto-save on content change (debounced)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleAutoSave = useCallback(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(saveNote, 2000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  // ── Load notes for workspace tiles view ──
+  useEffect(() => {
+    if (noteParam) return;
+    setWsNotesLoading(true);
+    const url = activeWs ? `/notes?workspace_id=${activeWs.id}` : '/notes?workspace_id=personal';
+    api.get<{ success: boolean; data: Note[] }>(url)
+      .then(r => setWsNotes(r.data ?? []))
+      .catch(() => setWsNotes([]))
+      .finally(() => setWsNotesLoading(false));
+  }, [activeWs, noteParam]);
+
+  // ── Create note in current workspace ──
   const createNote = async () => {
-    const ws = activeWs ?? primaryWorkspace;
-    if (!ws) return;
+    const wsId = wsParam ?? activeWs?.id ?? null; // null means personal
+    if (creating) return;
     setCreating(true);
     try {
+      // Enforce max 3 empty/untitled notes
+      const existingUrl = wsId ? `/notes?workspace_id=${wsId}` : '/notes?workspace_id=personal';
+      const existing = await api.get<{ success: boolean; data: Note[] }>(existingUrl);
+      const emptyCount = (existing.data ?? []).filter(
+        n => (!n.title || n.title === 'Untitled') && (!n.content_md || n.content_md.trim() === '')
+      ).length;
+      if (emptyCount >= 3) {
+        alert('You already have 3 empty notes. Please fill in or delete one before creating another.');
+        setCreating(false);
+        return;
+      }
       const r = await api.post<{ success: boolean; data: Note }>('/notes', {
-        title: 'Untitled', content_md: '', workspace_id: ws.id,
+        title: 'Untitled', content_md: '', workspace_id: wsId,
       });
-      await loadNotes(ws.id);
-      if (r.data) { setActive(r.data); setContent(''); setContentJson({}); }
+      if (r.data) {
+        if (wsId) {
+          router.push(`/workspace?ws=${wsId}&note=${r.data.id}`);
+        } else {
+          router.push(`/workspace?note=${r.data.id}`);
+        }
+      }
     } catch {}
     setCreating(false);
   };
 
-  const deleteNote = async (id: string) => {
-    if (!confirm('Delete this note?')) return;
-    await api.delete(`/notes/${id}`);
-    const remaining = notes.filter(n => n.id !== id);
-    setNotes(remaining);
-    if (active?.id === id) { setActive(remaining[0] ?? null); setContent(remaining[0]?.content_md ?? ''); }
-  };
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      createNote();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get('new')]);
 
-  const togglePin = async (n: Note) => {
-    await api.patch(`/notes/${n.id}`, { is_pinned: !n.is_pinned });
-    setNotes(ns => ns.map(x => x.id === n.id ? { ...x, is_pinned: !x.is_pinned } : x));
-  };
-
+  // ── Note operations ──
   const renameNote = (id: string, title: string) => {
-    setNotes(ns => ns.map(n => n.id === id ? { ...n, title } : n));
     if (active?.id === id) setActive(a => a ? { ...a, title } : a);
   };
 
-  const switchWorkspace = (ws: Workspace) => {
-    setActiveWs(ws);
-    setActive(null);
-    setContent('');
-    loadNotes(ws.id);
+  const togglePin = async (n: Note) => {
+    if (active?.id === n.id) setActive(a => a ? { ...a, is_pinned: !a.is_pinned } : a);
+    await api.patch(`/notes/${n.id}`, { is_pinned: !n.is_pinned });
   };
 
-  const ws = activeWs ?? workspaces.find(w => w.id === active?.workspace_id) ?? primaryWorkspace;
-  const filtered = notes.filter(n => n.title.toLowerCase().includes(search.toLowerCase()));
-  const pinned   = filtered.filter(n => n.is_pinned);
-  const unpinned = filtered.filter(n => !n.is_pinned);
-  const outline  = content.split('\n').filter(l => /^#{1,3} /.test(l)).slice(0, 8);
+  const deleteNote = async (id: string) => {
+    await api.delete(`/notes/${id}`);
+    // Navigate back to workspace without the note param
+    router.push(`/workspace${wsParam ? `?ws=${wsParam}` : ''}`);
+  };
 
-  const words = content.split(/\s+/).filter(Boolean).length;
-  const chars = content.length;
+  const duplicateNote = async (n: Note) => {
+    const wsId = wsParam ?? n.workspace_id;
+    try {
+      const r = await api.post<{ success: boolean; data: Note }>('/notes', {
+        title: `${n.title} (copy)`, content_md: n.content_md, workspace_id: wsId,
+      });
+      if (r.data) router.push(`/workspace?ws=${wsId}&note=${r.data.id}`);
+    } catch {}
+  };
+
+  const openMenu = (e: React.MouseEvent, note: Note) => {
+    e.preventDefault(); e.stopPropagation();
+    setMenu({ x: e.clientX, y: e.clientY, note });
+  };
+
+  const menuItems = menu ? [
+    { label: 'Rename',    icon: <Pencil size={14} />,    onClick: () => { const t = prompt('New title:', menu.note.title); if (t) { renameNote(menu.note.id, t); api.patch(`/notes/${menu.note.id}`, { title: t }).catch(() => {}); } } },
+    { label: active?.is_pinned ? 'Unpin' : 'Pin', icon: active?.is_pinned ? <PinOff size={14} /> : <Pin size={14} />, onClick: () => togglePin(menu.note) },
+    { label: 'Duplicate', icon: <Copy size={14} />,      onClick: () => duplicateNote(menu.note) },
+    { label: 'Move to...', icon: <FolderOutput size={14} />, onClick: () => setMoveModal(menu.note) },
+    { label: 'Delete',    icon: <Trash2 size={14} />,    onClick: () => deleteNote(menu.note.id), danger: true },
+  ] : [];
+
+  const handleMove = async (targetWsId: string | null) => {
+    if (!moveModal) return;
+    try {
+      await api.patch(`/notes/${moveModal.id}`, { workspace_id: targetWsId });
+      setMoveModal(null);
+      // Remove from current view
+      setWsNotes(notes => notes.filter(n => n.id !== moveModal.id));
+      if (active?.id === moveModal.id) {
+        setActive(null);
+        setContent('');
+        contentRef.current = '';
+        router.push(`/workspace${targetWsId ? `?ws=${targetWsId}` : ''}`);
+      }
+    } catch {}
+  };
 
   return (
     <AppShell>
-      <Breadcrumb items={[
-        { label: 'Home',      href: '/' },
-        { label: 'Workspace', href: '/workspace' },
-        ...(ws           ? [{ label: `${ws.icon} ${ws.name}`, href: '/workspace' }] : []),
-        ...(active       ? [{ label: active.title }]                                 : []),
-      ]} />
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} />}
 
-      <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] xl:grid-cols-[220px_1fr_190px] gap-4 items-start mt-3">
-
-        {/* ── Note list ── */}
-        <aside className="bg-[var(--color-surface-pure)] rounded-lg shadow-[0_1px_24px_rgba(49,51,46,0.05)] overflow-hidden flex flex-col max-h-[calc(100vh-9rem)] sticky top-[4.5rem]">
-          {/* Workspace tabs (admin+) */}
-          {workspaces.length > 1 && (
-            <div className="flex overflow-x-auto gap-1 px-2 pt-2 pb-0 scrollbar-none">
-              {workspaces.map(w => (
-                <button key={w.id} onClick={() => switchWorkspace(w)}
-                  className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-[var(--radius-md)] text-[11px] font-medium transition-colors ${
-                    (activeWs?.id ?? '') === w.id
-                      ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-cnt)]'
-                      : 'text-[var(--color-on-surface-var)] hover:bg-[var(--color-surface-low)]'
-                  }`}>
-                  <span>{w.icon}</span>{w.name}
+      {moveModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={() => setMoveModal(null)}>
+          <div className="bg-[var(--color-surface-pure)] rounded-lg p-6 w-full max-w-sm shadow-[0_20px_60px_rgba(14,14,13,0.15)] animate-fade-up" onClick={e => e.stopPropagation()}>
+            <h2 className="text-[15px] font-bold text-[var(--color-on-surface)] mb-4">Move Note to...</h2>
+            <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-2">
+              <button
+                onClick={() => handleMove(null)}
+                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-medium rounded-lg text-[var(--color-on-surface)] hover:bg-[var(--color-surface-low)] transition-colors text-left"
+              >
+                <span>👤</span> Personal
+              </button>
+              {allWorkspaces.map(w => (
+                <button
+                  key={w.id}
+                  onClick={() => handleMove(w.id)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-medium rounded-lg text-[var(--color-on-surface)] hover:bg-[var(--color-surface-low)] transition-colors text-left"
+                >
+                  <WorkspaceIcon icon={w.icon} size={14} /> {w.name}
                 </button>
               ))}
             </div>
-          )}
-
-          {/* Header */}
-          <div className="px-4 py-3 bg-[var(--color-surface-mid)] flex-shrink-0">
-            <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[9.5px] uppercase tracking-widest font-semibold text-[var(--color-on-surface-var)]">Notes</span>
-              <button id="new-note-btn" onClick={createNote} disabled={creating} title="New note"
-                className="w-7 h-7 flex items-center justify-center rounded-[var(--radius-md)] hover:bg-[var(--color-surface-high)] transition-colors text-[var(--color-on-surface-var)] disabled:opacity-50">
-                <Plus size={16} weight={creating ? 'regular' : 'bold'} />
+            <div className="mt-4 flex justify-end">
+              <button onClick={() => setMoveModal(null)} className="px-4 py-2 text-[12px] font-medium text-[var(--color-on-surface-var)] hover:bg-[var(--color-surface-low)] rounded-lg transition-colors">
+                Cancel
               </button>
             </div>
-            <div className="flex items-center gap-2 bg-[var(--color-surface-pure)] border border-[var(--color-outline-var)]/30 rounded-[var(--radius-md)] px-3 py-1.5">
-              <MagnifyingGlass size={13} color="var(--color-outline)" />
-              <input id="workspace-search" className="flex-1 bg-transparent text-[12px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)]"
-                placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col h-[calc(100vh-4rem)] border-t border-[var(--color-surface-high)] mt-1">
+        {/* Top bar */}
+        <header className="flex-none h-[46px] flex items-center justify-between px-4 bg-[var(--color-surface-pure)] border-b border-[var(--color-surface-high)] relative z-10">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--color-outline)]">
+              {user && (
+                <>
+                  <span className="opacity-60 max-w-[100px] truncate">{user.display_name}</span>
+                  <ChevronRight size={11} className="opacity-40 flex-shrink-0" />
+                </>
+              )}
+              {activeWs ? (
+                <span className="flex items-center gap-1 hover:text-[var(--color-on-surface)] cursor-pointer transition-colors" onClick={() => router.push(`/workspace?ws=${activeWs.id}`)}>
+                  <WorkspaceIcon icon={activeWs.icon} size={13} />
+                  <span className="truncate max-w-[120px]">{activeWs.name}</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 hover:text-[var(--color-on-surface)] cursor-pointer transition-colors" onClick={() => router.push('/workspace')}>
+                  <span>👤</span>
+                  <span className="truncate max-w-[120px]">Personal</span>
+                </span>
+              )}
+              {active && (
+                <>
+                  <ChevronRight size={11} className="opacity-40 flex-shrink-0" />
+                  <span className="text-[var(--color-on-surface)] truncate max-w-[180px]">{active.title || 'Untitled'}</span>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Note items */}
-          <div className="flex-1 overflow-y-auto py-1">
-            {filtered.length === 0 && (
-              <p className="text-center text-[12px] text-[var(--color-outline)] py-8">No notes yet.</p>
+          <div className="flex items-center gap-2">
+            {active && (
+              <button
+                onClick={e => openMenu(e, active)}
+                className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-low)] rounded-md transition-all"
+              >
+                <MoreVertical size={16} />
+              </button>
             )}
-            {[...pinned, ...unpinned].map(n => (
-              <div key={n.id}
-                className={`group flex items-start border-l-[3px] transition-colors ${
-                  active?.id === n.id
-                    ? 'bg-[var(--color-primary-container)] border-[var(--color-primary)]'
-                    : 'border-transparent hover:bg-[var(--color-surface-low)]'
-                }`}>
-                <button id={`note-list-${n.id}`} onClick={() => selectNote(n)} className="flex-1 text-left px-3 py-2.5 min-w-0">
-                  <p className={`text-[12.5px] font-semibold leading-snug truncate ${active?.id === n.id ? 'text-[var(--color-on-primary-cnt)]' : 'text-[var(--color-on-surface)]'}`}>
-                    {n.is_pinned && <PushPin size={10} className="inline mr-1 align-middle" />}
-                    {n.title}
-                  </p>
-                  <p className="text-[10.5px] text-[var(--color-outline)] mt-0.5">{timeAgo(n.updated_at)}</p>
-                </button>
-                <div className="opacity-0 group-hover:opacity-100 flex items-center pr-1.5 pt-2 gap-0.5 transition-opacity">
-                  <button onClick={() => togglePin(n)} title={n.is_pinned ? 'Unpin' : 'Pin'}
-                    className="p-1 text-[var(--color-outline)] hover:text-[var(--color-primary)] transition-colors">
-                    {n.is_pinned ? <PushPinSlash size={13} /> : <PushPin size={13} />}
-                  </button>
-                  <button onClick={() => deleteNote(n.id)} title="Delete"
-                    className="p-1 text-[var(--color-outline)] hover:text-[var(--color-error)] transition-colors">
-                    <Trash size={13} />
-                  </button>
-                </div>
-              </div>
-            ))}
+            <button
+              onClick={() => setRightOpen(!rightOpen)}
+              className={`p-1.5 rounded-md transition-all ${rightOpen && active ? 'text-[var(--color-primary)] bg-[var(--color-primary-container)]' : 'text-[var(--color-outline)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-low)]'}`}
+              title="Toggle Table of Contents"
+            >
+              <List size={16} />
+            </button>
           </div>
-        </aside>
+        </header>
 
-        {/* ── Editor ── */}
-        <div className="bg-[var(--color-surface-pure)] rounded-lg shadow-[0_1px_24px_rgba(49,51,46,0.05)] flex flex-col min-h-[500px] overflow-hidden">
-          {active ? (
-            <>
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 pt-4 pb-3">
-                <div className="min-w-0 flex-1">
-                  {/* Title with emoji picker */}
-                  <div className="flex items-center gap-2 relative">
-                    <div ref={emojiRef}>
-                      <button id="emoji-picker-btn" onClick={() => setShowEmoji(v => !v)}
-                        className="text-lg hover:scale-110 transition-transform" title="Add emoji">
-                        📝
-                      </button>
-                      {showEmoji && (
-                        <div className="absolute top-8 left-0 z-50">
-                          <EmojiPicker
-                            emojiStyle="native" lazyLoadEmojis
-                            height={350} width={300}
-                            searchDisabled={false}
-                            onEmojiClick={e => {
-                              const t = e.emoji + ' ' + (active.title.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\s]+/gu, '').trim() || 'Untitled');
-                              renameNote(active.id, t);
-                              setShowEmoji(false);
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
+        {/* Body */}
+        <div className="flex-1 flex overflow-hidden">
+
+          {/* ── CENTER — Editor or Grid ── */}
+          <main className="flex-1 bg-dotted-grid overflow-y-auto flex flex-col relative min-w-[320px]">
+            {active ? (
+              <div className="max-w-3xl mx-auto w-full flex-1 flex flex-col min-h-full">
+                {/* Editor Header */}
+                <div className="flex items-center justify-between px-8 py-5 border-b border-[var(--color-surface-high)] bg-transparent">
+                  <div className="flex-1 mr-4">
                     <input
-                      className="flex-1 text-xl font-bold tracking-tight text-[var(--color-on-surface)] bg-transparent outline-none"
+                      className="text-[28px] font-bold tracking-tight text-[var(--color-on-surface)] bg-transparent outline-none placeholder:opacity-30 w-full"
+                      placeholder="Untitled Note"
                       value={active.title}
                       onChange={e => renameNote(active.id, e.target.value)}
-                      onBlur={async () => api.patch(`/notes/${active.id}`, { title: active.title }).catch(() => {})}
-                      aria-label="Note title"
+                      onBlur={() => api.patch(`/notes/${active.id}`, { title: active.title }).catch(() => {})}
                     />
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[11px] text-[var(--color-outline)] font-medium">Last updated {timeAgo(active.updated_at)}</span>
+                      {active.is_pinned && <Pin size={10} className="text-[var(--color-primary)]" fill="currentColor" />}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    {ws && (
-                      <span className="inline-flex px-2 py-0.5 rounded-[var(--radius-md)] text-[10px] font-semibold uppercase tracking-wider bg-[var(--color-secondary-cnt)] text-[var(--color-on-secondary-cnt)]">
-                        {ws.icon} {ws.name}
-                      </span>
-                    )}
-                    <span className="text-[11px] text-[var(--color-outline)]">{timeAgo(active.updated_at)}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={saveNote}
+                      disabled={saving}
+                      className={`flex items-center gap-2 px-4 py-2 text-[12px] font-bold rounded-lg transition-all ${
+                        saved ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-[var(--color-primary)] text-white hover:opacity-90'
+                      } disabled:opacity-50`}
+                    >
+                      {saved ? <Check size={14} strokeWidth={3} /> : <Save size={14} />}
+                      {saving ? 'Saving…' : saved ? 'Saved' : 'Save'}
+                    </button>
                   </div>
                 </div>
-                <button id="save-note-btn" onClick={saveNote} disabled={saving}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-medium rounded-[var(--radius-md)] transition-all flex-shrink-0 ${
-                    saved
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dim)] text-[var(--color-on-primary)] hover:opacity-90'
-                  } disabled:opacity-50`}>
-                  {saved ? <Check size={14} /> : <FloppyDisk size={14} />}
-                  {saving ? 'Saving…' : saved ? 'Saved' : 'Save'}
-                </button>
+
+                {/* Editor Body */}
+                <div className="flex-1 px-8 py-6">
+                  <MarkdownEditor
+                    key={active.id}
+                    initialContent={active.content_md}
+                    onChange={t => {
+                      setContent(t);
+                      contentRef.current = t;
+                      setSaved(false);
+                      scheduleAutoSave();
+                    }}
+                    placeholder="Start typing your thoughts…"
+                  />
+                </div>
+
+                {/* Status bar */}
+                <div className="py-2 px-8 border-t border-[var(--color-surface-high)] text-[10px] text-[var(--color-outline)] flex items-center justify-between bg-transparent mt-auto">
+                  <div className="flex gap-4">
+                    <span>{words} words</span>
+                    <span>{chars} characters</span>
+                  </div>
+                  <span>{saved ? 'All changes saved' : saving ? 'Saving...' : 'Unsaved changes'}</span>
+                </div>
               </div>
+            ) : !noteParam ? (
+              /* ── Workspace note tiles ── */
+              <div className="flex-1 p-6">
+                {/* Workspace header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-pure)] border border-[var(--color-surface-high)] flex items-center justify-center">
+                      {activeWs ? <WorkspaceIcon icon={activeWs.icon} size={22} /> : <span className="text-[22px]">👤</span>}
+                    </div>
+                    <div>
+                      <h2 className="text-[17px] font-bold text-[var(--color-on-surface)] leading-tight">{activeWs ? activeWs.name : 'Personal Notes'}</h2>
+                      <p className="text-[11px] text-[var(--color-outline)] mt-0.5">{wsNotes.length} note{wsNotes.length !== 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="h-px bg-[var(--color-surface-high)]" />
+                {wsNotesLoading ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="h-[130px] rounded-xl bg-[var(--color-surface-pure)]/60 border border-[var(--color-surface-high)] animate-pulse" />
+                    ))}
+                  </div>
+                ) : wsNotes.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-pure)]/60 border border-dashed border-[var(--color-surface-high)] flex items-center justify-center mb-4">
+                      <FolderOpen size={26} className="text-[var(--color-outline)] opacity-50" />
+                    </div>
+                    <p className="text-[13px] text-[var(--color-outline)]">No notes yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {wsNotes.map(n => (
+                      <button
+                        key={n.id}
+                        onClick={() => router.push(activeWs ? `/workspace?ws=${activeWs.id}&note=${n.id}` : `/workspace?note=${n.id}`)}
+                        className="text-left p-4 rounded-xl bg-[var(--color-surface-pure)]/70 border border-[var(--color-surface-high)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-surface-pure)] transition-all group"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          {n.is_pinned && <Pin size={11} className="text-[var(--color-primary)]" fill="currentColor" />}
+                          <span className="ml-auto text-[10px] text-[var(--color-outline)]">{timeAgo(n.updated_at)}</span>
+                        </div>
+                        <p className="text-[13px] font-semibold text-[var(--color-on-surface)] leading-snug line-clamp-2 mb-2 group-hover:text-[var(--color-primary)] transition-colors">
+                          {n.title || 'Untitled'}
+                        </p>
+                        <p className="text-[11px] text-[var(--color-on-surface-var)] line-clamp-3 leading-relaxed">
+                          {n.content_md.replace(/[#*`>_~]/g, '').slice(0, 100) || <span className="italic opacity-50">Empty note</span>}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </main>
 
-              <TiptapEditor
-                key={active.id}
-                initialContent={content}
-                initialJson={Object.keys(contentJson).length ? contentJson : undefined}
-                onChange={(text, json) => { setContent(text); setContentJson(json); }}
-                placeholder="Start writing your thoughts…"
-              />
-            </>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-10">
-              <span className="text-5xl mb-3">📄</span>
-              <p className="text-[14px] font-semibold text-[var(--color-on-surface-var)]">No note open</p>
-              <p className="text-[12.5px] text-[var(--color-outline)] mt-1 mb-4">Select from the list or create a new one.</p>
-              <button onClick={createNote}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dim)] text-[var(--color-on-primary)] text-[13px] font-medium rounded-[var(--radius-md)] hover:opacity-90">
-                <Plus size={15} weight="bold" />New Note
-              </button>
-            </div>
+          {/* ── RIGHT SIDEBAR — Table of Contents ── */}
+          {active && rightOpen && (
+            <aside className="w-[220px] flex-none bg-[var(--color-surface-pure)] border-l border-[var(--color-surface-high)] p-5 overflow-y-auto z-10 transition-all">
+              <p className="text-[10px] uppercase tracking-widest text-[var(--color-outline)] mb-4 font-bold flex items-center gap-1.5">
+                <List size={12} /> Table of Contents
+              </p>
+              {outline.length > 0 ? (
+                <div className="space-y-0.5">
+                  {outline.map((l, i) => {
+                    const lvl  = (l.match(/^(#+)/)![1]).length;
+                    const slug = l.replace(/^#+\s/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    return (
+                      <div key={i}
+                        onClick={() => { const el = document.getElementById(`heading-${slug}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                        className="text-[12px] text-[var(--color-on-surface-var)] truncate rounded-md px-2 py-1.5 hover:bg-[var(--color-surface-low)] hover:text-[var(--color-primary)] transition-colors cursor-pointer"
+                        style={{ paddingLeft: `${(lvl - 1) * 12 + 8}px` }}>
+                        {l.replace(/^#+\s/, '')}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-[11px] text-[var(--color-outline)] italic">No headings found.</p>
+              )}
+            </aside>
           )}
         </div>
-
-        {/* ── Meta sidebar ── */}
-        <aside className="hidden xl:block bg-[var(--color-surface-pure)] rounded-lg p-4 shadow-[0_1px_24px_rgba(49,51,46,0.05)] sticky top-[4.5rem] space-y-4">
-          {outline.length > 0 && (
-            <div>
-              <p className="text-[9px] uppercase tracking-widest text-[var(--color-outline)] mb-1.5 font-semibold">Outline</p>
-              {outline.map((l, i) => {
-                const lvl = (l.match(/^(#+)/)![1]).length;
-                return (
-                  <div key={i} className="text-[11.5px] text-[var(--color-on-surface-var)] truncate rounded-[var(--radius-sm)] px-2 py-1 hover:bg-[var(--color-surface-low)]"
-                    style={{ paddingLeft: `${(lvl - 1) * 10 + 8}px` }}>
-                    {l.replace(/^#+\s/, '')}
-                  </div>
-                );
-              })}
-              <div className="h-px bg-[var(--color-surface-high)] my-3" />
-            </div>
-          )}
-
-          <div>
-            <p className="text-[9px] uppercase tracking-widest text-[var(--color-outline)] mb-1.5 font-semibold">Stats</p>
-            {[['Words', words], ['Chars', chars], ['Notes', notes.length]].map(([k, v]) => (
-              <div key={k} className="flex justify-between py-1 border-b border-[var(--color-surface-high)] last:border-0">
-                <span className="text-[11.5px] text-[var(--color-on-surface-var)]">{k}</span>
-                <span className="text-[11.5px] font-semibold text-[var(--color-on-surface)]">{v}</span>
-              </div>
-            ))}
-          </div>
-        </aside>
       </div>
     </AppShell>
   );
 }
 
-const ROLE_WEIGHT: Record<string, number> = { super_admin: 3, admin: 2, user: 1 };
+export default function WorkspacePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center p-20">Loading workspace...</div>}>
+      <WorkspacePageContent />
+    </Suspense>
+  );
+}

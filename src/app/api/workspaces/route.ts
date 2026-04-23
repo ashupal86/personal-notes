@@ -29,10 +29,17 @@ export async function GET(req: NextRequest) {
   return Response.json({ success: true, data });
 }
 
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+
 /** POST /api/workspaces — admin+ */
 export async function POST(req: NextRequest) {
   const auth = await authenticateRequest(req);
   if (!auth) return unauthorized();
+
+  const rlResult = checkRateLimit(`create-ws:${auth.userId}`, 5, 60 * 1000);
+  const rlResponse = rateLimitResponse(rlResult);
+  if (rlResponse) return rlResponse;
+
   const deny = requireMinRole(auth, 'admin');
   if (deny) return deny;
 

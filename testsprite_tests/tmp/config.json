@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "ashu@devinit.in",
+  "loginPassword": "ashu@dev2004",
+  "executionArgs": {
+    "projectName": "notes-app",
+    "projectPath": "/home/ashu/Desktop/DEV/notes-app",
+    "testIds": [],
+    "additionalInstruction": "Please add a wait of 2-3 seconds after taking actions that trigger data loads or saves, because the data from Supabase is not realtime and takes time to load.",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user-w3X4cf_ibsx4LbdeMvWIiktSTx-2I87VQh-HxBdcv7J_F0VeRdbQ9_u_blyUggisxaH93yfpAjear-jR9Vm1S4qDeHRxa41KYZohhMFzdS4Zngj2P2Y-otJsx2uYUnkMhyE"
+    }
+  },
+  "serverPort": 38345,
+  "proxy": "http://50bb38b8-96fc-4e4a-b9c3-fbe77a49508c:so623IvoNZD8xcjFjqC9z3XBJ9uJxgaW@tun.testsprite.com:8080"
+}
