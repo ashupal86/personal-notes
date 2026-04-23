@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider }  from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import QueryProvider    from "@/components/QueryProvider";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
   title: "The Quiet Archive",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
+              <ServiceWorkerRegister />
               {children}
             </AuthProvider>
           </QueryProvider>

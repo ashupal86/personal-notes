@@ -141,6 +141,18 @@ body {
 .animate-fade-up { animation: fadeUp 0.2s ease forwards; }
 
 /* ─────────────────────────────────────────────────
+   Dotted Grid Background
+───────────────────────────────────────────────── */
+.bg-dotted-grid {
+  background-image: radial-gradient(circle, var(--color-outline-var) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-color: var(--color-surface);
+}
+[data-theme="dark"] .bg-dotted-grid {
+  background-image: radial-gradient(circle, var(--color-surface-highest) 1px, transparent 1px);
+}
+
+/* ─────────────────────────────────────────────────
    Tiptap editor styles
 ───────────────────────────────────────────────── */
 .tiptap-editor { outline: none; min-height: 300px; }

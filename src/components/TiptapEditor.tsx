@@ -13,13 +13,13 @@ import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import {
-  TextB, TextItalic, TextUnderline, TextStrikethrough,
-  Code, CodeBlock, Quotes, ListBullets, ListNumbers,
-  ListChecks, Table as TableIcon, Link as LinkIcon, Image as ImageIcon,
-  TextAlignLeft, TextAlignCenter, TextAlignRight,
-  TextH, ArrowCounterClockwise, ArrowClockwise,
-  Minus, HighlighterCircle, Palette,
-} from '@phosphor-icons/react';
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough,
+  Code, Quote, List, ListOrdered, ListChecks,
+  AlignLeft, AlignCenter, AlignRight,
+  Heading1, Minus, Highlighter, Palette,
+  Link as LinkIcon, Image as ImageIcon, Table as TableIcon,
+  Undo2, Redo2,
+} from 'lucide-react';
 import { useCallback, useRef } from 'react';
 
 /* ── Toolbar button ── */
@@ -74,17 +74,17 @@ function Toolbar({ editor }: { editor: Editor }) {
     <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 bg-[var(--color-surface-mid)] border-b border-[var(--color-surface-high)] rounded-t-lg">
       {/* History */}
       <TBtn title="Undo" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
-        <ArrowCounterClockwise size={15} />
+        <Undo2 size={15} />
       </TBtn>
       <TBtn title="Redo" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
-        <ArrowClockwise size={15} />
+        <Redo2 size={15} />
       </TBtn>
 
       <Divider />
 
       {/* Headings */}
       <TBtn title="Heading 1" active={editor.isActive('heading',{level:1})} onClick={() => editor.chain().focus().toggleHeading({level:1}).run()}>
-        <TextH size={15} weight="bold" />
+        <Heading1 size={15} />
       </TBtn>
       <TBtn title="Heading 2" active={editor.isActive('heading',{level:2})} onClick={() => editor.chain().focus().toggleHeading({level:2}).run()}>
         <span className="text-[11px] font-bold">H2</span>
@@ -96,39 +96,39 @@ function Toolbar({ editor }: { editor: Editor }) {
       <Divider />
 
       {/* Inline marks */}
-      <TBtn title="Bold"          active={editor.isActive('bold')}      onClick={() => editor.chain().focus().toggleBold().run()}>      <TextB size={15} /></TBtn>
-      <TBtn title="Italic"        active={editor.isActive('italic')}    onClick={() => editor.chain().focus().toggleItalic().run()}>    <TextItalic size={15} /></TBtn>
-      <TBtn title="Underline"     active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()}> <TextUnderline size={15} /></TBtn>
-      <TBtn title="Strikethrough" active={editor.isActive('strike')}    onClick={() => editor.chain().focus().toggleStrike().run()}>    <TextStrikethrough size={15} /></TBtn>
+      <TBtn title="Bold"          active={editor.isActive('bold')}      onClick={() => editor.chain().focus().toggleBold().run()}>      <Bold size={15} /></TBtn>
+      <TBtn title="Italic"        active={editor.isActive('italic')}    onClick={() => editor.chain().focus().toggleItalic().run()}>    <Italic size={15} /></TBtn>
+      <TBtn title="Underline"     active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()}> <UnderlineIcon size={15} /></TBtn>
+      <TBtn title="Strikethrough" active={editor.isActive('strike')}    onClick={() => editor.chain().focus().toggleStrike().run()}>    <Strikethrough size={15} /></TBtn>
       <TBtn title="Inline code"   active={editor.isActive('code')}      onClick={() => editor.chain().focus().toggleCode().run()}>      <Code size={15} /></TBtn>
 
       <Divider />
 
       {/* Blocks */}
-      <TBtn title="Blockquote" active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()}><Quotes size={15} /></TBtn>
-      <TBtn title="Code block" active={editor.isActive('codeBlock')}  onClick={() => editor.chain().focus().toggleCodeBlock().run()}> <CodeBlock size={15} /></TBtn>
+      <TBtn title="Blockquote" active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()}><Quote size={15} /></TBtn>
+      <TBtn title="Code block" active={editor.isActive('codeBlock')}  onClick={() => editor.chain().focus().toggleCodeBlock().run()}> <Code size={15} strokeWidth={1.5} /></TBtn>
       <TBtn title="Divider line" onClick={() => editor.chain().focus().setHorizontalRule().run()}><Minus size={15} /></TBtn>
 
       <Divider />
 
       {/* Lists */}
-      <TBtn title="Bullet list"  active={editor.isActive('bulletList')}  onClick={() => editor.chain().focus().toggleBulletList().run()}>  <ListBullets size={15} /></TBtn>
-      <TBtn title="Ordered list" active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()}> <ListNumbers size={15} /></TBtn>
+      <TBtn title="Bullet list"  active={editor.isActive('bulletList')}  onClick={() => editor.chain().focus().toggleBulletList().run()}>  <List size={15} /></TBtn>
+      <TBtn title="Ordered list" active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()}> <ListOrdered size={15} /></TBtn>
       <TBtn title="Task list"    active={editor.isActive('taskList')}    onClick={() => editor.chain().focus().toggleTaskList().run()}>    <ListChecks size={15} /></TBtn>
 
       <Divider />
 
       {/* Align */}
-      <TBtn title="Align left"   active={editor.isActive({textAlign:'left'})}   onClick={() => editor.chain().focus().setTextAlign('left').run()}>   <TextAlignLeft size={15} /></TBtn>
-      <TBtn title="Align center" active={editor.isActive({textAlign:'center'})} onClick={() => editor.chain().focus().setTextAlign('center').run()}> <TextAlignCenter size={15} /></TBtn>
-      <TBtn title="Align right"  active={editor.isActive({textAlign:'right'})}  onClick={() => editor.chain().focus().setTextAlign('right').run()}>  <TextAlignRight size={15} /></TBtn>
+      <TBtn title="Align left"   active={editor.isActive({textAlign:'left'})}   onClick={() => editor.chain().focus().setTextAlign('left').run()}>   <AlignLeft size={15} /></TBtn>
+      <TBtn title="Align center" active={editor.isActive({textAlign:'center'})} onClick={() => editor.chain().focus().setTextAlign('center').run()}> <AlignCenter size={15} /></TBtn>
+      <TBtn title="Align right"  active={editor.isActive({textAlign:'right'})}  onClick={() => editor.chain().focus().setTextAlign('right').run()}>  <AlignRight size={15} /></TBtn>
 
       <Divider />
 
       {/* Color + highlight */}
       <div className="relative">
         <TBtn title="Highlight" active={editor.isActive('highlight')} onClick={() => hlRef.current?.click()}>
-          <HighlighterCircle size={15} />
+          <Highlighter size={15} />
         </TBtn>
         <input ref={hlRef} type="color" defaultValue="#fef08a" className="absolute opacity-0 w-0 h-0 pointer-events-none"
           onChange={e => editor.chain().focus().setHighlight({ color: e.target.value }).run()} />
