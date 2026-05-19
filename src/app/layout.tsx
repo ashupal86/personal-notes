@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider }  from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import QueryProvider    from "@/components/QueryProvider";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
@@ -22,8 +23,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
-              <ServiceWorkerRegister />
-              {children}
+              <NotificationProvider>
+                <ServiceWorkerRegister />
+                {children}
+              </NotificationProvider>
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
