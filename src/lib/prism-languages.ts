@@ -1,0 +1,46 @@
+// Register languages for PrismLight — keeps bundle lean vs full Prism
+import { PrismLight as SHL } from 'react-syntax-highlighter';
+import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
+import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
+import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx';
+import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
+import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
+import css from 'react-syntax-highlighter/dist/esm/languages/prism/css';
+import html from 'react-syntax-highlighter/dist/esm/languages/prism/markup';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
+import rust from 'react-syntax-highlighter/dist/esm/languages/prism/rust';
+import go from 'react-syntax-highlighter/dist/esm/languages/prism/go';
+import java from 'react-syntax-highlighter/dist/esm/languages/prism/java';
+import c from 'react-syntax-highlighter/dist/esm/languages/prism/c';
+import cpp from 'react-syntax-highlighter/dist/esm/languages/prism/cpp';
+import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
+import markdown from 'react-syntax-highlighter/dist/esm/languages/prism/markdown';
+
+SHL.registerLanguage('javascript', javascript);
+SHL.registerLanguage('js', javascript);
+SHL.registerLanguage('typescript', typescript);
+SHL.registerLanguage('ts', typescript);
+SHL.registerLanguage('jsx', jsx);
+SHL.registerLanguage('tsx', tsx);
+SHL.registerLanguage('python', python);
+SHL.registerLanguage('py', python);
+SHL.registerLanguage('bash', bash);
+SHL.registerLanguage('sh', bash);
+SHL.registerLanguage('json', json);
+SHL.registerLanguage('css', css);
+SHL.registerLanguage('html', html);
+SHL.registerLanguage('xml', html);
+SHL.registerLanguage('sql', sql);
+SHL.registerLanguage('rust', rust);
+SHL.registerLanguage('go', go);
+SHL.registerLanguage('java', java);
+SHL.registerLanguage('c', c);
+SHL.registerLanguage('cpp', cpp);
+SHL.registerLanguage('yaml', yaml);
+SHL.registerLanguage('yml', yaml);
+SHL.registerLanguage('markdown', markdown);
+SHL.registerLanguage('md', markdown);
+
+export {};

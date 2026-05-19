@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
 
   const headers = new Headers();
   headers.set('Content-Type', 'application/json');
-  headers.set('Set-Cookie', `qa_api_key=${rawKey}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000`);
+  const secureFlag = process.env.NODE_ENV === 'production' ? 'Secure;' : '';
+  headers.set('Set-Cookie', `qa_api_key=${rawKey}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000; ${secureFlag}`);
 
   return new Response(JSON.stringify({ success: true, message: 'Super admin created.' }), { status: 200, headers });
 }

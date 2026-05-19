@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { authenticateRequest, unauthorized } from '@/lib/auth/middleware';
-import { requireMinRole } from '@/lib/auth/rbac';
+import { requireMinRole, hasMinRole } from '@/lib/auth/rbac';
 import { db, getAdminClient } from '@/lib/supabase/server';
 
 /** GET /api/users — admin+ */
@@ -37,6 +37,10 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const { email, password, display_name, role = 'user', workspace_id } = body;
+
+  if (!hasMinRole(auth, role)) {
+    return Response.json({ success: false, error: 'Cannot create a user with a higher role than your own.' }, { status: 403 });
+  }
 
   if (!email || !password || !display_name) {
     return Response.json({ success: false, error: 'Email, password and display_name required.' }, { status: 400 });

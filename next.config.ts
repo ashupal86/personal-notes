@@ -10,15 +10,25 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline' https: http:",
-              "font-src 'self' data: https: http:",
-              "connect-src 'self' https: wss: http: ws:",
-              "img-src 'self' data: blob: https: http:",
-              "worker-src 'self' blob:",
-            ].join('; '),
+            value: process.env.NODE_ENV === 'development'
+              ? [
+                  "default-src 'self'",
+                  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                  "font-src 'self' data: https://fonts.gstatic.com https: http:",
+                  "connect-src 'self' https: wss: http: ws:",
+                  "img-src 'self' data: blob: https: http:",
+                  "worker-src 'self' blob:",
+                ].join('; ')
+              : [
+                  "default-src 'self'",
+                  "script-src 'self' 'unsafe-inline'",
+                  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                  "font-src 'self' data: https://fonts.gstatic.com https: http:",
+                  "connect-src 'self' https: wss: http: ws:",
+                  "img-src 'self' data: blob: https: http:",
+                  "worker-src 'self' blob:",
+                ].join('; '),
           },
         ],
       },

@@ -20,6 +20,21 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return Response.json({ success: false, error: 'Cannot delete yourself.' }, { status: 400 });
   }
 
+  // Fetch target user to check their role
+  const { data: targetUser } = await db.from('users').select('role').eq('id', id).single();
+  if (!targetUser) {
+    return Response.json({ success: false, error: 'User not found.' }, { status: 404 });
+  }
+
+  // Only super_admin can delete another super_admin or admin. Admin can only delete users.
+  const roleValue = { super_admin: 3, admin: 2, user: 1 } as const;
+  const requesterValue = roleValue[auth.role] ?? 1;
+  const targetValue = roleValue[targetUser.role as keyof typeof roleValue] ?? 1;
+  
+  if (requesterValue <= targetValue && auth.role !== 'super_admin') {
+     return Response.json({ success: false, error: 'Cannot delete a user with an equal or higher role.' }, { status: 403 });
+  }
+
   // Soft delete and disable
   const { error } = await db
     .from('users')
